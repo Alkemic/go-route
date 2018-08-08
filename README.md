@@ -7,6 +7,30 @@ The main change is that handler function definition changes from
 ``func(ResponseWriter, *Request)`` to ``func(ResponseWriter, *Request, map[string]string)``.
 In given map are held params from URL.
 
+## Middlewares
+
+### Allowed methods
+
+This middleware checks if request method is allowed.
+
+Use consts from ``net/http`` for methos names, i.e. ``http.MethodPost``.
+
+```go
+package handlers
+
+import (
+    "net/http"
+
+    "github.com/Alkemic/go-route/middleware"
+)
+
+middleware.AllowedMethods([]string{http.MethodPost, http.MethodPut}])(
+    func(w ResponseWriter, r *Request, p map[string]string) {
+        // actual code
+    }
+)
+```
+
 ## Examples
 
 ### Example function
