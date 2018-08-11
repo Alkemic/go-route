@@ -16,7 +16,7 @@ This middleware checks if request method is allowed.
 Use consts from ``net/http`` for methos names, i.e. ``http.MethodPost``.
 
 ```go
-package handlers
+package main
 
 import (
     "net/http"
@@ -31,12 +31,58 @@ middleware.AllowedMethods([]string{http.MethodPost, http.MethodPut}])(
 )
 ```
 
+### Panic interceptors
+
+This middleware catches panics and logs them, and then returns 500 to the user. 500 handler can be overriden by
+
+Differences between ``PanicInterceptor`` and ``PanicInterceptorWithLogger`` is that, the second one is parametrised
+decorator that accepts instance of ``*log.Logger``. If first one is use, it uses standard ``log.Printf``/``log.Println``.
+
+
+```go
+package main
+
+import (
+    "log"
+    "net/http"
+    "os"
+
+    "github.com/Alkemic/go-route/middleware"
+)
+
+middleware.PanicInterceptor(
+    func(w ResponseWriter, r *Request, p map[string]string) {
+        // actual code
+    }
+)
+```
+
+```go
+package main
+
+import (
+    "log"
+    "net/http"
+    "os"
+
+    "github.com/Alkemic/go-route/middleware"
+)
+
+var logger = log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
+
+middleware.PanicInterceptorWithLogger(logger)(
+    func(w ResponseWriter, r *Request, p map[string]string) {
+        // actual code
+    }
+)
+```
+
 ## Examples
 
 ### Example function
 
 ```go
-package routing
+package main
 
 import (
     ...
