@@ -77,6 +77,30 @@ middleware.PanicInterceptorWithLogger(logger)(
 )
 ```
 
+### Set headers
+
+This middleware is used to set given headers to response.
+
+```go
+package main
+
+import (
+    "net/http"
+
+    "github.com/Alkemic/go-route/middleware"
+)
+
+header := map[string]string{
+    "Content-Type": "application/json",
+}
+
+middleware.SetHeaders(logger)(
+    func(w ResponseWriter, r *Request, p map[string]string) {
+        // actual code
+    }
+)
+```
+
 ## Examples
 
 ### Example function
