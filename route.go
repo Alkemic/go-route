@@ -51,6 +51,7 @@ func (h *RegexpRouter) Add(
 	case func(http.ResponseWriter, *http.Request, map[string]string):
 		r = &route{regexp.MustCompile(pattern), HandlerFunc(_handler)}
 	case HandlerFunc:
+		r = &route{regexp.MustCompile(pattern), _handler}
 	case RegexpRouter:
 		r = &route{regexp.MustCompile(pattern), _handler}
 	default:
