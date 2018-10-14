@@ -147,7 +147,7 @@ func main() {
     // register custom 404 handler function
     route.NotFound = helper.Handle404
 
-    log.Fatalln(http.ListenAndServe("0.0.0.0:80", routing.ServeHTTP))
+    log.Fatalln(http.ListenAndServe("0.0.0.0:80", routing))
 }
 
 ```
