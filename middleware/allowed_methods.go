@@ -8,10 +8,10 @@ import (
 
 func AllowedMethods(allowedMethods []string) func(f route.HandlerFunc) route.HandlerFunc {
 	return func(f route.HandlerFunc) route.HandlerFunc {
-		return func(rw http.ResponseWriter, req *http.Request, params map[string]string) {
+		return func(rw http.ResponseWriter, req *http.Request) {
 			for _, method := range allowedMethods {
 				if req.Method == method {
-					f(rw, req, params)
+					f(rw, req)
 					return
 				}
 			}

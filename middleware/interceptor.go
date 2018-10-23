@@ -21,19 +21,19 @@ func panicDefer(rw http.ResponseWriter, req *http.Request, logger *log.Logger) {
 }
 
 func PanicInterceptor(f route.HandlerFunc) route.HandlerFunc {
-	return func(rw http.ResponseWriter, req *http.Request, params map[string]string) {
+	return func(rw http.ResponseWriter, req *http.Request) {
 		defer panicDefer(rw, req, nil)
 
-		f(rw, req, params)
+		f(rw, req)
 	}
 }
 
 func PanicInterceptorWithLogger(logger *log.Logger) func(f route.HandlerFunc) route.HandlerFunc {
 	return func(f route.HandlerFunc) route.HandlerFunc {
-		return func(rw http.ResponseWriter, req *http.Request, params map[string]string) {
+		return func(rw http.ResponseWriter, req *http.Request) {
 			defer panicDefer(rw, req, logger)
 
-			f(rw, req, params)
+			f(rw, req)
 		}
 	}
 }

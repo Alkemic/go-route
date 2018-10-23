@@ -14,21 +14,15 @@ var (
 
 type Handler interface {
 	ServeHTTP(http.ResponseWriter, *http.Request)
-	handle(string, http.ResponseWriter, *http.Request, *map[string]string)
+	handle(string, http.ResponseWriter, *http.Request)
 }
 
-// Acctual function
-type HandlerFunc func(http.ResponseWriter, *http.Request, map[string]string)
+type HandlerFunc func(http.ResponseWriter, *http.Request)
 
 func (f HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
 
-func (f HandlerFunc) handle(
-	_ string,
-	resp http.ResponseWriter,
-	req *http.Request,
-	params *map[string]string,
-) {
-	f(resp, req, *params)
+func (f HandlerFunc) handle(_ string, resp http.ResponseWriter, req *http.Request) {
+	f(resp, req)
 }
 
 type route struct {
@@ -41,14 +35,11 @@ type RegexpRouter struct {
 	routes []*route
 }
 
-func (h *RegexpRouter) Add(
-	pattern string,
-	handler interface{},
-) {
+func (h *RegexpRouter) Add(pattern string, handler interface{}) {
 	var r *route
 
 	switch _handler := handler.(type) {
-	case func(http.ResponseWriter, *http.Request, map[string]string):
+	case func(http.ResponseWriter, *http.Request):
 		r = &route{regexp.MustCompile(pattern), HandlerFunc(_handler)}
 	case HandlerFunc:
 		r = &route{regexp.MustCompile(pattern), _handler}
@@ -61,22 +52,17 @@ func (h *RegexpRouter) Add(
 	h.routes = append(h.routes, r)
 }
 
-func (h RegexpRouter) handle(
-	urlPath string,
-	resp http.ResponseWriter,
-	req *http.Request,
-	params *map[string]string,
-) {
+func (h RegexpRouter) handle(urlPath string, resp http.ResponseWriter, req *http.Request) {
 	for _, route := range h.routes {
 		if route.pattern.MatchString(urlPath) {
 			match := route.pattern.FindStringSubmatch(urlPath)
 			for i, name := range route.pattern.SubexpNames() {
 				if i != 0 {
-					(*params)[name] = match[i]
+					addParam(req, name, match[i])
 				}
 			}
 			urlPath = route.pattern.ReplaceAllString(urlPath, "")
-			route.handler.handle(urlPath, resp, req, params)
+			route.handler.handle(urlPath, resp, req)
 			return
 		}
 	}
@@ -85,5 +71,6 @@ func (h RegexpRouter) handle(
 }
 
 func (h RegexpRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.handle(r.URL.Path, w, r, &map[string]string{})
+	initParams(r)
+	h.handle(r.URL.Path, w, r)
 }

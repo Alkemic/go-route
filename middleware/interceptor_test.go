@@ -17,14 +17,14 @@ import (
 )
 
 var (
-	basicHandler = func(rw http.ResponseWriter, req *http.Request, p map[string]string) {
+	basicHandler = func(rw http.ResponseWriter, req *http.Request) {
 		fmt.Fprint(rw, "response ok")
 		rw.WriteHeader(http.StatusOK)
 	}
-	stringPanicHandler = func(rw http.ResponseWriter, req *http.Request, p map[string]string) {
+	stringPanicHandler = func(rw http.ResponseWriter, req *http.Request) {
 		panic("string error")
 	}
-	errorPanicHandler = func(rw http.ResponseWriter, req *http.Request, p map[string]string) {
+	errorPanicHandler = func(rw http.ResponseWriter, req *http.Request) {
 		panic(errors.New("error error"))
 	}
 
@@ -72,7 +72,7 @@ func TestPanicInterceptor(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "http://example.com/foo", nil)
 			w := httptest.NewRecorder()
 
-			PanicInterceptor(tc.handler)(w, req, map[string]string{})
+			PanicInterceptor(tc.handler)(w, req)
 
 			resp := w.Result()
 			defer resp.Body.Close()
@@ -102,7 +102,7 @@ func TestPanicInterceptorWithLogger(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "http://example.com/foo", nil)
 			w := httptest.NewRecorder()
 
-			PanicInterceptorWithLogger(logger)(tc.handler)(w, req, map[string]string{})
+			PanicInterceptorWithLogger(logger)(tc.handler)(w, req)
 
 			resp := w.Result()
 			defer resp.Body.Close()

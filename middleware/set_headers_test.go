@@ -10,7 +10,7 @@ import (
 )
 
 func TestSetHeaders(t *testing.T) {
-	basicHandler := func(rw http.ResponseWriter, req *http.Request, p map[string]string) {
+	basicHandler := func(rw http.ResponseWriter, req *http.Request) {
 		fmt.Fprint(rw, "response ok")
 		rw.WriteHeader(http.StatusOK)
 	}
@@ -45,7 +45,7 @@ func TestSetHeaders(t *testing.T) {
 
 			handler := SetHeaders(tc.headers)(tc.handler)
 
-			handler(w, req, map[string]string{})
+			handler(w, req)
 
 			resp := w.Result()
 

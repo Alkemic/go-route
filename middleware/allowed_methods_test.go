@@ -11,7 +11,7 @@ import (
 )
 
 func TestAllowedMethods(t *testing.T) {
-	basicHandler := func(rw http.ResponseWriter, req *http.Request, p map[string]string) {
+	basicHandler := func(rw http.ResponseWriter, req *http.Request) {
 		fmt.Fprint(rw, "response ok")
 		rw.WriteHeader(http.StatusOK)
 	}
@@ -56,7 +56,7 @@ func TestAllowedMethods(t *testing.T) {
 
 			handler := AllowedMethods(tc.allowedMethods)(tc.handler)
 
-			handler(w, req, map[string]string{})
+			handler(w, req)
 
 			resp := w.Result()
 			defer resp.Body.Close()
