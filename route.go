@@ -41,6 +41,8 @@ func (h *RegexpRouter) Add(pattern string, handler interface{}) {
 	switch _handler := handler.(type) {
 	case func(http.ResponseWriter, *http.Request):
 		r = &route{regexp.MustCompile(pattern), HandlerFunc(_handler)}
+	case http.HandlerFunc:
+		r = &route{regexp.MustCompile(pattern), HandlerFunc(_handler)}
 	case HandlerFunc:
 		r = &route{regexp.MustCompile(pattern), _handler}
 	case RegexpRouter:

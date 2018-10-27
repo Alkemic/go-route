@@ -12,8 +12,6 @@ import (
 	"testing"
 
 	"github.com/pkg/errors"
-
-	"github.com/Alkemic/go-route"
 )
 
 var (
@@ -30,7 +28,7 @@ var (
 
 	testCases = []struct {
 		name               string
-		handler            route.HandlerFunc
+		handler            http.HandlerFunc
 		expectedStatusCode int
 		expectedBody       string
 		expectedLog        string

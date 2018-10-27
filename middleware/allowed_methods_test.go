@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/Alkemic/go-route"
 )
 
 func TestAllowedMethods(t *testing.T) {
@@ -20,7 +18,7 @@ func TestAllowedMethods(t *testing.T) {
 		name string
 
 		method         string
-		handler        route.HandlerFunc
+		handler        http.HandlerFunc
 		allowedMethods []string
 
 		expectedStatusCode int

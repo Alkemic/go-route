@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/Alkemic/go-route"
 )
 
 func TestSetHeaders(t *testing.T) {
@@ -18,7 +16,7 @@ func TestSetHeaders(t *testing.T) {
 	testCases := []struct {
 		name string
 
-		handler route.HandlerFunc
+		handler http.HandlerFunc
 		headers map[string]string
 
 		expectedStatusCode int

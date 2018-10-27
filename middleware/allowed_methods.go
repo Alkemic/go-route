@@ -2,12 +2,10 @@ package middleware
 
 import (
 	"net/http"
-
-	"github.com/Alkemic/go-route"
 )
 
-func AllowedMethods(allowedMethods []string) func(f route.HandlerFunc) route.HandlerFunc {
-	return func(f route.HandlerFunc) route.HandlerFunc {
+func AllowedMethods(allowedMethods []string) func(f http.HandlerFunc) http.HandlerFunc {
+	return func(f http.HandlerFunc) http.HandlerFunc {
 		return func(rw http.ResponseWriter, req *http.Request) {
 			for _, method := range allowedMethods {
 				if req.Method == method {
