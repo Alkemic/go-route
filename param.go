@@ -13,9 +13,14 @@ func GetParams(r *http.Request) map[string]string {
 	return params
 }
 
-func addParam(r *http.Request, key, value string) {
+func SetParam(r *http.Request, key, value string) {
 	ctx := r.Context()
 	params, _ := ctx.Value(paramsKey).(map[string]string)
+	if params == nil {
+		initParams(r)
+		ctx = r.Context()
+		params, _ = ctx.Value(paramsKey).(map[string]string)
+	}
 	params[key] = value
 	ctx = context.WithValue(ctx, paramsKey, params)
 	(*r) = *(r.WithContext(ctx))

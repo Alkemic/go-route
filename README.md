@@ -25,7 +25,7 @@ import (
 )
 
 middleware.AllowedMethods([]string{http.MethodPost, http.MethodPut}])(
-    func(w ResponseWriter, r *Request) {
+    func(w http.ResponseWriter, r *http.Request) {
         p := route.GetParams(req)
         // actual code
     }
@@ -52,7 +52,7 @@ import (
 )
 
 middleware.PanicInterceptor(
-    func(w ResponseWriter, r *Request) {
+    func(w http.ResponseWriter, r *http.Request) {
         p := route.GetParams(req)
         // actual code
     }
@@ -74,7 +74,7 @@ import (
 var logger = log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
 
 middleware.PanicInterceptorWithLogger(logger)(
-    func(w ResponseWriter, r *Request) {
+    func(w http.ResponseWriter, r *http.Request) {
         p := route.GetParams(req)
         // actual code
     }
@@ -100,12 +100,44 @@ header := map[string]string{
 }
 
 middleware.SetHeaders(logger)(
-    func(w ResponseWriter, r *Request) {
+    func(w http.ResponseWriter, r *http.Request) {
         p := route.GetParams(req)
         // actual code
     }
 )
 ```
+
+### BasicAuthenticate
+
+Setups HTP basic authenticate, for given view. Accepts functions that will verify credentials. Comes with two default
+functions that will do that:
+* ``Authenticate`` - accepts user and password
+* ``AuthenticateList`` - accept map (user => password)
+
+Custom verification function must have following signature ``func(user string, password string) (string, error)``.
+
+```go
+package main
+
+import (
+    "net/http"
+
+    "github.com/Alkemic/go-route"
+    "github.com/Alkemic/go-route/middleware"
+)
+
+authenticateFunc = middleware.Authenticate("username", "password")
+
+middleware.BasicAuthenticate(logger, authenticateFunc, "realm name")(
+    func(w http.ResponseWriter, r *http.Request) {
+        user, err := middleware.GetUser(r)
+    }
+)
+```
+
+### Noop
+
+Does noting. Simply returns provided functions. Can be useful when used as default option in some cases.
 
 ## Examples
 
@@ -119,7 +151,7 @@ import (
     "github.com/Alkemic/go-route"
 )
 
-func News(w ResponseWriter, r *Request) {
+func News(w http.ResponseWriter, r *http.Request) {
     p := route.GetParams(req)
     pk, _ := strconv.Atoi(p["pk"])
     news, _ := model.GetNews(pk)
