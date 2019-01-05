@@ -60,7 +60,7 @@ func (h RegexpRouter) handle(urlPath string, resp http.ResponseWriter, req *http
 			match := route.pattern.FindStringSubmatch(urlPath)
 			for i, name := range route.pattern.SubexpNames() {
 				if i != 0 {
-					addParam(req, name, match[i])
+					SetParam(req, name, match[i])
 				}
 			}
 			urlPath = route.pattern.ReplaceAllString(urlPath, "")
