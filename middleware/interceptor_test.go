@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,8 +11,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-
-	"github.com/pkg/errors"
 )
 
 var (

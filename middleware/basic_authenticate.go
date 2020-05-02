@@ -2,12 +2,11 @@ package middleware
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	"github.com/Alkemic/go-route"
 )
@@ -19,6 +18,7 @@ var (
 	ErrEmptyList             = errors.New("empty user list provided")
 	ErrNoUserProvided        = errors.New("no user provided in request context")
 	ErrAuthHeaderWrongLength = errors.New("wrong length of authorization value")
+	ErrMissingAuthHeader     = errors.New("missing authorization header")
 )
 
 type AuthFn func(string, string) (string, error)
@@ -51,12 +51,12 @@ func BasicAuthenticate(logger *log.Logger, authFn AuthFn, realm string) func(htt
 func getCredentials(r *http.Request) (string, string, error) {
 	s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 	if len(s) != 2 {
-		return "", "", errors.New("missing authorization header")
+		return "", "", ErrMissingAuthHeader
 	}
 
 	b, err := base64.StdEncoding.DecodeString(s[1])
 	if err != nil {
-		return "", "", errors.Wrap(err, "can't decode authorization header")
+		return "", "", fmt.Errorf("can't decode authorization header: %w", err)
 	}
 
 	pair := strings.SplitN(string(b), ":", 2)
