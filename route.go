@@ -6,7 +6,6 @@ import (
 )
 
 var (
-	NotFound            = http.NotFound
 	InternalServerError = func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "500 internal server error", http.StatusInternalServerError)
 	}
@@ -32,7 +31,14 @@ type route struct {
 
 // RegexpRouter
 type RegexpRouter struct {
-	routes []*route
+	routes   []*route
+	NotFound func(w http.ResponseWriter, r *http.Request)
+}
+
+func New() *RegexpRouter {
+	return &RegexpRouter{
+		NotFound: http.NotFound,
+	}
 }
 
 func (h *RegexpRouter) Add(pattern string, handler interface{}) {
@@ -42,10 +48,9 @@ func (h *RegexpRouter) Add(pattern string, handler interface{}) {
 	case func(http.ResponseWriter, *http.Request):
 		r = &route{regexp.MustCompile(pattern), HandlerFunc(_handler)}
 	case http.HandlerFunc:
-		r = &route{regexp.MustCompile(pattern), HandlerFunc(_handler)}
 	case HandlerFunc:
-		r = &route{regexp.MustCompile(pattern), _handler}
 	case RegexpRouter:
+	case *RegexpRouter:
 		r = &route{regexp.MustCompile(pattern), _handler}
 	default:
 		panic("Unknown handler param passed to RegexpRouter.Add")
@@ -68,8 +73,7 @@ func (h RegexpRouter) handle(urlPath string, resp http.ResponseWriter, req *http
 			return
 		}
 	}
-
-	NotFound(resp, req)
+	h.NotFound(resp, req)
 }
 
 func (h RegexpRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
