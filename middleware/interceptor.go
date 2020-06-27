@@ -3,9 +3,11 @@ package middleware
 import (
 	"log"
 	"net/http"
-
-	"github.com/Alkemic/go-route"
 )
+
+func internalServerError(w http.ResponseWriter, _ *http.Request) {
+	http.Error(w, "500 internal server error", http.StatusInternalServerError)
+}
 
 func panicDefer(rw http.ResponseWriter, req *http.Request, logger *log.Logger) {
 	if r := recover(); r != nil {
@@ -16,7 +18,7 @@ func panicDefer(rw http.ResponseWriter, req *http.Request, logger *log.Logger) {
 			log.Printf("Panic occured:\n%s\n", r)
 			log.Println("Panic end.")
 		}
-		route.InternalServerError(rw, req)
+		internalServerError(rw, req)
 	}
 }
 

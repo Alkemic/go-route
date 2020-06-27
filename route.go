@@ -5,12 +5,6 @@ import (
 	"regexp"
 )
 
-var (
-	InternalServerError = func(w http.ResponseWriter, _ *http.Request) {
-		http.Error(w, "500 internal server error", http.StatusInternalServerError)
-	}
-)
-
 type Handler interface {
 	ServeHTTP(http.ResponseWriter, *http.Request)
 	handle(string, http.ResponseWriter, *http.Request)
