@@ -25,7 +25,7 @@ type route struct {
 
 // RegexpRouter
 type RegexpRouter struct {
-	routes   []*route
+	routes   []route
 	NotFound func(w http.ResponseWriter, r *http.Request)
 }
 
@@ -36,21 +36,21 @@ func New() *RegexpRouter {
 }
 
 func (h *RegexpRouter) Add(pattern string, handler interface{}) {
-	var r *route
+	var handlerFunc Handler
 
 	switch _handler := handler.(type) {
 	case func(http.ResponseWriter, *http.Request):
-		r = &route{regexp.MustCompile(pattern), HandlerFunc(_handler)}
+		handlerFunc = HandlerFunc(_handler)
 	case http.HandlerFunc:
 	case HandlerFunc:
 	case RegexpRouter:
 	case *RegexpRouter:
-		r = &route{regexp.MustCompile(pattern), _handler}
+		handlerFunc = _handler
 	default:
 		panic("Unknown handler param passed to RegexpRouter.Add")
 	}
 
-	h.routes = append(h.routes, r)
+	h.routes = append(h.routes, route{pattern: regexp.MustCompile(pattern), handler: handlerFunc})
 }
 
 func (h RegexpRouter) handle(urlPath string, resp http.ResponseWriter, req *http.Request) {
