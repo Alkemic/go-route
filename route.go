@@ -5,6 +5,20 @@ import (
 	"regexp"
 )
 
+var (
+	defaultMethods = map[string]struct{}{
+		http.MethodGet:     {},
+		http.MethodHead:    {},
+		http.MethodPost:    {},
+		http.MethodPut:     {},
+		http.MethodPatch:   {},
+		http.MethodDelete:  {},
+		http.MethodConnect: {},
+		http.MethodOptions: {},
+		http.MethodTrace:   {},
+	}
+)
+
 type Handler interface {
 	ServeHTTP(http.ResponseWriter, *http.Request)
 	handle(string, http.ResponseWriter, *http.Request)
@@ -19,8 +33,25 @@ func (f HandlerFunc) handle(_ string, resp http.ResponseWriter, req *http.Reques
 }
 
 type route struct {
-	pattern *regexp.Regexp
-	handler Handler
+	pattern        *regexp.Regexp
+	handler        Handler
+	allowedMethods map[string]struct{}
+}
+
+func newRoute(pattern *regexp.Regexp, handler Handler, allowedMethods ...string) route {
+	allowedMethodsMap := map[string]struct{}{}
+	if len(allowedMethods) == 0 {
+		allowedMethodsMap = defaultMethods
+	} else {
+		for _, method := range allowedMethods {
+			allowedMethodsMap[method] = struct{}{}
+		}
+	}
+	return route{
+		pattern:        pattern,
+		handler:        handler,
+		allowedMethods: allowedMethodsMap,
+	}
 }
 
 // RegexpRouter
@@ -35,27 +66,32 @@ func New() *RegexpRouter {
 	}
 }
 
-func (h *RegexpRouter) Add(pattern string, handler interface{}) {
+func (h *RegexpRouter) Add(pattern string, handler interface{}, allowedMethods ...string) {
 	var handlerFunc Handler
 
 	switch _handler := handler.(type) {
 	case func(http.ResponseWriter, *http.Request):
 		handlerFunc = HandlerFunc(_handler)
 	case http.HandlerFunc:
-	case HandlerFunc:
+		handlerFunc = HandlerFunc(_handler)
 	case RegexpRouter:
+		handlerFunc = _handler
 	case *RegexpRouter:
 		handlerFunc = _handler
 	default:
 		panic("Unknown handler param passed to RegexpRouter.Add")
 	}
 
-	h.routes = append(h.routes, route{pattern: regexp.MustCompile(pattern), handler: handlerFunc})
+	h.routes = append(h.routes, newRoute(regexp.MustCompile(pattern), handlerFunc, allowedMethods...))
 }
 
 func (h RegexpRouter) handle(urlPath string, resp http.ResponseWriter, req *http.Request) {
 	for _, route := range h.routes {
 		if route.pattern.MatchString(urlPath) {
+			if _, ok := route.allowedMethods[req.Method]; !ok {
+				http.Error(resp, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+				return
+			}
 			match := route.pattern.FindStringSubmatch(urlPath)
 			for i, name := range route.pattern.SubexpNames() {
 				if i != 0 {

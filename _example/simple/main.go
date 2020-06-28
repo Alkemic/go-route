@@ -42,7 +42,7 @@ func main() {
 	//subRoutes.NotFound = getHandle404("sub router")
 
 	routes := route.New()
-	routes.Add(`^/sub`, subRoutes)
+	routes.Add(`^/sub`, subRoutes, http.MethodPost, http.MethodGet)
 	routes.Add(`^/$`, index)
 	routes.Add(`^/(?P<param>[a-z]*)/(?P<param2>[a-z]*)/$`, view)
 	routes.Add(`^/(?P<param>.*)/$`, view)
