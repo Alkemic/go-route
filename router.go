@@ -36,7 +36,7 @@ func New() *RegexpRouter {
 	}
 }
 
-func (r *RegexpRouter) Add(pattern string, handler interface{}, allowedMethods ...string) {
+func (r *RegexpRouter) Add(pattern string, handler interface{}, allowedMethods ...string) *RegexpRouter {
 	var handlerFunc Handler
 
 	switch _handler := handler.(type) {
@@ -53,10 +53,13 @@ func (r *RegexpRouter) Add(pattern string, handler interface{}, allowedMethods .
 	}
 
 	r.routes = append(r.routes, newRoute(regexp.MustCompile(pattern), handlerFunc, allowedMethods...))
+
+	return r
 }
 
-func (r *RegexpRouter) AddMiddleware(mw Middleware) {
+func (r *RegexpRouter) AddMiddleware(mw Middleware) *RegexpRouter {
 	r.middlewares = append(r.middlewares, mw)
+	return r
 }
 
 func (r RegexpRouter) handle(rw http.ResponseWriter, req *http.Request) {
