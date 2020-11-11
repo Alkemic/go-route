@@ -40,6 +40,12 @@ func main() {
 	subRoutes.Add(`^/(?P<digit>\d+)$`, subView)
 	subRoutes.Add(`^/(?P<param>.*)$`, subView)
 	//subRoutes.NotFound = getHandle404("sub router")
+	subRoutes.AddMiddleware(func(fn http.HandlerFunc) http.HandlerFunc {
+		return func(rw http.ResponseWriter, req *http.Request) {
+			log.Println("middleware test")
+			fn(rw, req)
+		}
+	})
 
 	routes := route.New()
 	routes.Add(`^/sub`, subRoutes, http.MethodPost, http.MethodGet)

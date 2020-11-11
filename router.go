@@ -1,27 +1,33 @@
 package route
 
 import (
+	"context"
 	"net/http"
 	"regexp"
 )
 
+var urlPathContextKey = struct{}{}
+
 type Handler interface {
 	ServeHTTP(http.ResponseWriter, *http.Request)
-	handle(string, http.ResponseWriter, *http.Request)
+	handle(http.ResponseWriter, *http.Request)
 }
 
 type HandlerFunc func(http.ResponseWriter, *http.Request)
 
 func (f HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
 
-func (f HandlerFunc) handle(_ string, resp http.ResponseWriter, req *http.Request) {
+func (f HandlerFunc) handle(resp http.ResponseWriter, req *http.Request) {
 	f(resp, req)
 }
 
+type Middleware func(fn http.HandlerFunc) http.HandlerFunc
+
 // RegexpRouter
 type RegexpRouter struct {
-	routes   []route
-	NotFound func(w http.ResponseWriter, r *http.Request)
+	routes      []route
+	middlewares []Middleware
+	NotFound    func(w http.ResponseWriter, r *http.Request)
 }
 
 func New() *RegexpRouter {
@@ -49,7 +55,12 @@ func (r *RegexpRouter) Add(pattern string, handler interface{}, allowedMethods .
 	r.routes = append(r.routes, newRoute(regexp.MustCompile(pattern), handlerFunc, allowedMethods...))
 }
 
-func (r RegexpRouter) handle(urlPath string, rw http.ResponseWriter, req *http.Request) {
+func (r *RegexpRouter) AddMiddleware(mw Middleware) {
+	r.middlewares = append(r.middlewares, mw)
+}
+
+func (r RegexpRouter) handle(rw http.ResponseWriter, req *http.Request) {
+	urlPath := req.Context().Value(urlPathContextKey).(string)
 	for _, route := range r.routes {
 		if route.pattern.MatchString(urlPath) {
 			if _, ok := route.allowedMethods[req.Method]; !ok {
@@ -63,7 +74,12 @@ func (r RegexpRouter) handle(urlPath string, rw http.ResponseWriter, req *http.R
 				}
 			}
 			urlPath = route.pattern.ReplaceAllString(urlPath, "")
-			route.handler.handle(urlPath, rw, req)
+			req = req.WithContext(context.WithValue(req.Context(), urlPathContextKey, urlPath))
+			fn := route.handler.handle
+			for _, middleware := range r.middlewares {
+				fn = middleware(fn)
+			}
+			fn(rw, req)
 			return
 		}
 	}
@@ -72,5 +88,6 @@ func (r RegexpRouter) handle(urlPath string, rw http.ResponseWriter, req *http.R
 
 func (r RegexpRouter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	initParams(req)
-	r.handle(req.URL.Path, rw, req)
+	req = req.WithContext(context.WithValue(req.Context(), urlPathContextKey, req.URL.Path))
+	r.handle(rw, req)
 }
