@@ -15,10 +15,12 @@ type Handler interface {
 
 type HandlerFunc func(http.ResponseWriter, *http.Request)
 
-func (f HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
+func (f HandlerFunc) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	f(rw, req)
+}
 
-func (f HandlerFunc) handle(resp http.ResponseWriter, req *http.Request) {
-	f(resp, req)
+func (f HandlerFunc) handle(rw http.ResponseWriter, req *http.Request) {
+	f(rw, req)
 }
 
 type Middleware func(fn http.HandlerFunc) http.HandlerFunc
