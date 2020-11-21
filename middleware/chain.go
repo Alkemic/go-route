@@ -1,15 +1,14 @@
 package middleware
 
-import "github.com/Alkemic/go-route"
+import (
+	"github.com/Alkemic/go-route"
+)
 
-type Middleware func(route.HandlerFunc) route.HandlerFunc
-
-func Chain(middlewares ...Middleware) Middleware {
+func Chain(middlewares ...route.Middleware) route.Middleware {
 	return func(f route.HandlerFunc) route.HandlerFunc {
-		for _, middleware := range middlewares {
-			f = middleware(f)
+		for i := len(middlewares) - 1; i >= 0; i-- {
+			f = middlewares[i](f)
 		}
-
 		return f
 	}
 }

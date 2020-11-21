@@ -23,7 +23,7 @@ func (f HandlerFunc) handle(rw http.ResponseWriter, req *http.Request) {
 	f(rw, req)
 }
 
-type Middleware func(fn http.HandlerFunc) http.HandlerFunc
+type Middleware func(fn HandlerFunc) HandlerFunc
 
 // RegexpRouter
 type RegexpRouter struct {
